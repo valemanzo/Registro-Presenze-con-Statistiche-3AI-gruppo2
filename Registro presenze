@@ -1,0 +1,93 @@
+#include <iostream>
+#include <string>
+#include <fstream>
+using namespace std;
+
+int main() {
+    int n;
+    cout << "Inserisci il numero di studenti (max 30): ";
+    cin >> n;
+    if (n > 30) {
+        cout << "Numero troppo grande, imposto 100." << endl;
+        n = 100;
+    }
+
+    string studenti[30];               // array fisso grande
+    int presenze_perc[30] = {0};      // inizializzo a 0
+    bool assenze[30][5];              // matrice assenze, max 100 studenti x 5 giorni
+
+    // Inserimento studenti
+    for (int i = 0; i < n; i++) {
+        cout << "Inserisci lo studente "<<i+1<<": ";
+        cin >> studenti[i];
+    }
+
+    string giorni[] = {"Lunedi'", "Martedi'", "Mercoledi'", "Giovedi'", "Venerdi'"};
+
+    // Raccogliere le presenze
+    for (int col = 0; col < 5; col++) {
+        for (int riga = 0; riga < n; riga++) {
+            cout << giorni[col] << ": " << studenti[riga] << " era assente (1 = si, 0 = no)? ";
+            cin >> assenze[riga][col];
+        }
+        cout << endl;
+    }
+
+    // Calcolo percentuali presenze
+    for (int riga = 0; riga < n; riga++) {
+        presenze_perc[riga] = 0;
+        for (int col = 0; col < 5; col++) {
+            if (assenze[riga][col] == 0) {  // presenza
+                presenze_perc[riga]++;
+            }
+        }
+    }
+
+    // Ordinamento Bubble Sort decrescente
+    for (int i = 0; i < n - 1; i++) {
+        for (int j = 0; j < n - 1 - i; j++) {
+            if (presenze_perc[j] < presenze_perc[j + 1]) {
+                // Scambio percentuali
+                int temp_perc = presenze_perc[j];
+                presenze_perc[j] = presenze_perc[j + 1];
+                presenze_perc[j + 1] = temp_perc;
+
+                // Scambio assenze
+                for (int k = 0; k < 5; k++) {
+                    swap(assenze[j][k], assenze[j + 1][k]);
+                }
+
+                // Scambio studenti
+                string temp_stud = studenti[j];
+                studenti[j] = studenti[j + 1];
+                studenti[j + 1] = temp_stud;
+            }
+        }
+    }
+
+    // Stampa
+    cout << "Ecco gli studenti ordinati in base alle percentuali di presenze:" << endl;
+    for (int i = 0; i < n; i++) {
+        int percentuale_presenze = (presenze_perc[i] * 100) / 5;
+        cout << studenti[i] << ": " << percentuale_presenze << "%" << endl;
+        if (percentuale_presenze < 75) {
+            cout << studenti[i] << " ha meno del 75% di presenze!" << endl;
+        }
+    }
+
+    // Scrittura su file CSV
+    ofstream outfile("registro.csv");
+    if (outfile.is_open()) {
+        outfile << "Studente;Percentuale Presenze\n";  // intestazione
+        for (int i = 0; i < n; i++) {
+            int percentuale_presenze = (presenze_perc[i] * 100) / 5;
+            outfile << studenti[i] << ";" << percentuale_presenze << "%\n";
+        }
+        outfile.close();
+        cout << "Dati salvati su registro.csv\n";
+    } else {
+        cout << "Errore nell'apertura del file registro.csv\n";
+    }
+
+    return 0;
+}
